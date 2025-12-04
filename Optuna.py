@@ -36,7 +36,7 @@ def objective(trial, model, data, train_mask, val_mask):
         weight_decay = trial.suggest_float('weight_decay', 1e-5, 1e-2, log=True)
         
         gamma_focal = trial.suggest_float('gamma_focal', 0.1, 5.0)
-        alpha_focal = balanced_class_weights(data.y[data.train_mask]).to(device)
+        alpha_focal = balanced_class_weights(data.y[train_mask]).to(device)
         criterion = FocalLoss(alpha=alpha_focal, gamma=gamma_focal, reduction='mean')
         
         early_stop_patience = trial.suggest_int('early_stop_patience', 5, 40)
