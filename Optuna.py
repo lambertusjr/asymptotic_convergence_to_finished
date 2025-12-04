@@ -67,7 +67,7 @@ def objective(trial, model, data):
                 num_epochs,
                 **trial_early_stop_args
             )
-            return best_f1
+            return float(best_f1)
         
         elif model in sklearn_models:
             train_x = data.x[data.train_mask].cpu().numpy()
@@ -77,7 +77,10 @@ def objective(trial, model, data):
             model_instance.fit(train_x, train_y)
             pred = model_instance.predict(val_x)
             f1_illicit = f1_score(val_y, pred, pos_label=1, average='binary')
-            return f1_illicit
+            return float(f1_illicit)
+            
+        else:
+            raise ValueError(f"Unknown model: {model}")
         
     finally:
         gc.collect()
@@ -126,7 +129,7 @@ def run_optimisation(models, data, data_for_optimisation):
                 # Note: data, train_perf_eval, etc., are now the device tensors
                 study.optimize(
                     lambda trial: run_trial_with_cleanup( 
-                        objective, trial, model_name, data),
+                        objective, trial, model_name, model_name, data),
                     n_trials=n_trials,
                     callbacks=[_optuna_progress_callback]
                 )
