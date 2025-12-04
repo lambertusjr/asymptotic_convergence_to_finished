@@ -13,6 +13,7 @@ else:
     seed = np.random.SeedSequence().entropy
     
 
+
 #%% Hyperparameter tuning
 from Optuna import *
 datasets = ["IBM_AML_HiSmall", "IBM_AML_LiSmall", "IBM_AML_HiMedium", "IBM_AML_LiMedium", "AMLSim"]
@@ -50,7 +51,7 @@ for dataset in datasets:
     print(f"Starting hyperparameter optimization for {data_for_optimisation} dataset...")
     
     model_parameter = run_optimisation(
-        models=['MLP', 'SVM', 'XGB', 'RF', 'GCN', 'GAT', 'GIN'],
+        models=['GAT', 'GIN', 'MLP', 'SVM', 'XGB', 'RF', 'GCN'],
         data=data,
         data_for_optimisation=data_for_optimisation
     )

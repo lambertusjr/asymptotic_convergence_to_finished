@@ -55,7 +55,7 @@ def objective(trial, model, data):
         elif model == "MLP":
             num_epochs = 50
         else: # GNNs
-            num_epochs = 200
+            num_epochs = 400
         
         if model in wrapper_models:
             optimiser = torch.optim.Adam(model_instance.parameters(), lr=learning_rate, weight_decay=weight_decay)

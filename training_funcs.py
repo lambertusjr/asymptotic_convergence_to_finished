@@ -65,3 +65,53 @@ def update_best_weights(model, best_f1, current_f1, best_f1_model_wts=None):
         best_f1 = current_f1
         best_f1_model_wts = {k: v.cpu().clone() for k, v in model.state_dict().items()}
     return best_f1, best_f1_model_wts
+import gc
+import torch
+import torch
+import gc
+
+def print_gpu_tensors():
+    # Do not force gc.collect() here if you want to see current state including 
+    # potential temporaries. Only use it if hunting for "unreachable" leaks.
+    
+    print(f"{'Shape':<25} {'Type':<15} {'Count':<10} {'Total Mem (MB)':<15}")
+    print("-" * 70)
+    
+    tensor_groups = {}
+    total_mem = 0
+    
+    # Iterate over all objects
+    for obj in gc.get_objects():
+        try:
+            # Check if object is a tensor and on CUDA
+            # We use type check first to avoid errors accessing attributes on non-tensors
+            if torch.is_tensor(obj) and obj.is_cuda:
+                shape = str(tuple(obj.size()))
+                dtype = str(obj.dtype).replace('torch.', '')
+                key = (shape, dtype)
+                
+                mem = obj.element_size() * obj.nelement() / (1024 ** 2)
+                
+                if key in tensor_groups:
+                    tensor_groups[key]['count'] += 1
+                    tensor_groups[key]['mem'] += mem
+                else:
+                    tensor_groups[key] = {'count': 1, 'mem': mem}
+                
+                total_mem += mem
+        except Exception:
+            # Squelch errors from fragile objects during iteration
+            pass
+            
+    # Sort by memory usage
+    sorted_groups = sorted(tensor_groups.items(), key=lambda x: x[1]['mem'], reverse=True)
+    
+    for (shape, dtype), stats in sorted_groups:
+        print(f"{shape:<25} {dtype:<15} {stats['count']:<10} {stats['mem']:.2f}")
+        
+    print("-" * 70)
+    print(f"Total GPU Memory Occupied by Tensors: {total_mem:.2f} MB")
+    
+    # Compare with reserved memory to see fragmentation/cache overhead
+    reserved = torch.cuda.memory_reserved() / (1024 ** 2)
+    print(f"Total GPU Memory Reserved by PyTorch: {reserved:.2f} MB")

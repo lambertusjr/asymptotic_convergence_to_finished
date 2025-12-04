@@ -125,7 +125,7 @@ def _get_model_instance(trial, model, data, device):
     """
     if model == 'MLP':
         from models import MLP
-        hidden_units = trial.suggest_int('hidden_units', 32, 256)
+        hidden_units = trial.suggest_int('hidden_units', 32, 128)
         dropout_1 = trial.suggest_float('dropout_1', 0.0, 0.7)
         dropout_2 = trial.suggest_float('dropout_2', 0.0, 0.7)
         return MLP(num_node_features=data.num_node_features, num_classes=2, hidden_units=hidden_units, dropout_1=dropout_1, dropout_2=dropout_2)
@@ -171,13 +171,13 @@ def _get_model_instance(trial, model, data, device):
 
     elif model == 'GCN':
         from models import GCN
-        hidden_units = trial.suggest_int('hidden_units', 32, 256)
+        hidden_units = trial.suggest_int('hidden_units', 32, 160)
         dropout = trial.suggest_float('dropout', 0.0, 0.7)
         return GCN(num_node_features=data.x.shape[1], num_classes=2, hidden_units=hidden_units, dropout=dropout)
 
     elif model == 'GAT':
         from models import GAT
-        hidden_units = trial.suggest_int('hidden_units', 32, 128)
+        hidden_units = trial.suggest_int('hidden_units', 32, 160)
         num_heads = trial.suggest_int('num_heads', 1, 8)
         dropout_1 = trial.suggest_float('dropout_1', 0.0, 0.7)
         dropout_2 = trial.suggest_float('dropout_2', 0.0, 0.7)
