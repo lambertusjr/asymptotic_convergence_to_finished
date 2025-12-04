@@ -36,7 +36,7 @@ def train_and_validate(
     best_epoch = -1
     
     for epoch in range(num_epochs):
-        train_loss = model_wrapper.train_step(data, data.train_mask)
+        train_loss = model_wrapper.train_step(data)
         
         val_loss, f1_illicit = model_wrapper.evaluate(data, data.val_mask, full_metrics=False)
         
