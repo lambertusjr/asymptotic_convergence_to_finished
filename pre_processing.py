@@ -5,8 +5,7 @@ import os
 import pandas as pd
 from tqdm import tqdm
 from datetime import timedelta
-
-
+from sklearn.preprocessing import StandardScaler
 class EllipticDataset(InMemoryDataset):
     def __init__(self, root, transform=None, pre_transform=None):
         super(EllipticDataset, self).__init__(root, transform, pre_transform)
@@ -49,9 +48,9 @@ class EllipticDataset(InMemoryDataset):
         
         classes_df = classes_df.sort_values('txId').set_index('txId')
         # 3. Create Tensors
-        features_tensor = torch.tensor(features_df.drop(columns=['txId']).values, dtype=torch.float32)
-        edge_index_tensor = torch.tensor(edgelist_df.values.T, dtype=torch.int32)
-        y_tensor = torch.tensor(classes_df['class'].values, dtype=torch.int16)
+        features_tensor = torch.tensor(features_df.drop(columns=['txId']).values, dtype=torch.long)
+        edge_index_tensor = torch.tensor(edgelist_df.values.T, dtype=torch.long)
+        y_tensor = torch.tensor(classes_df['class'].values, dtype=torch.long)
 
         # 4. Create Data Object
         data = Data(x=features_tensor, edge_index=edge_index_tensor, y=y_tensor)
@@ -157,7 +156,14 @@ class IBMAMLDataset_HiSmall(InMemoryDataset):
         # This logic is adapted from src/data/DatasetConstruction.py [load_ibm]
         
         print("Reading raw transaction data...")
-        df_features = pd.read_csv(self.raw_paths[0])
+        df_features = pd.read_csv(
+            self.raw_paths[0],
+            dtype={
+                'Amount Received': 'float32',
+                'Amount Paid': 'float32',
+                'class': 'int8' # Saves memory on labels
+            }
+        )
         
         # 1. Basic filtering and sorting
         date_format = '%Y/%m/%d %H:%M'
@@ -189,15 +195,10 @@ class IBMAMLDataset_HiSmall(InMemoryDataset):
         
         # 6. Feature Engineering
         print("Performing feature engineering...")
-        list_day, list_hour, list_minute = [], [], []
-        for date in df_features['Timestamp']:
-            list_day.append(date.day)
-            list_hour.append(date.hour)
-            list_minute.append(date.minute)
-        
-        df_features['Day'] = list_day
-        df_features['Hour'] = list_hour
-        df_features['Minute'] = list_minute
+        timestamps = pd.DatetimeIndex(df_features['Timestamp'])
+        df_features['Day'] = timestamps.day.astype('float32')
+        df_features['Hour'] = timestamps.hour.astype('float32')
+        df_features['Minute'] = timestamps.minute.astype('float32')
 
         # Drop columns not used as features or labels
         df_features = df_features.drop(columns=['Timestamp', 'Account', 'Account.1'])
@@ -206,9 +207,11 @@ class IBMAMLDataset_HiSmall(InMemoryDataset):
         df_features = pd.get_dummies(
             df_features, 
             columns=['Receiving Currency', 'Payment Currency', 'Payment Format'], 
-            dtype=float
+            dtype='float32'
         )
-
+        scaler = StandardScaler()
+        df_features['Amount Received'] = scaler.fit_transform(df_features[['Amount Received']])
+        df_features['Amount Paid'] = scaler.fit_transform(df_features[['Amount Paid']])
         # 7. Prepare Tensors
         # Get labels (y)
         y = torch.tensor(df_features['class'].values, dtype=torch.long)
@@ -364,15 +367,10 @@ class IBMAMLDataset_LiSmall(InMemoryDataset):
         
         # 6. Feature Engineering
         print("Performing feature engineering...")
-        list_day, list_hour, list_minute = [], [], []
-        for date in df_features['Timestamp']:
-            list_day.append(date.day)
-            list_hour.append(date.hour)
-            list_minute.append(date.minute)
-        
-        df_features['Day'] = list_day
-        df_features['Hour'] = list_hour
-        df_features['Minute'] = list_minute
+        timestamps = pd.DatetimeIndex(df_features['Timestamp'])
+        df_features['Day'] = timestamps.day.astype('float32')
+        df_features['Hour'] = timestamps.hour.astype('float32')
+        df_features['Minute'] = timestamps.minute.astype('float32')
 
         # Drop columns not used as features or labels
         df_features = df_features.drop(columns=['Timestamp', 'Account', 'Account.1'])
@@ -381,9 +379,11 @@ class IBMAMLDataset_LiSmall(InMemoryDataset):
         df_features = pd.get_dummies(
             df_features, 
             columns=['Receiving Currency', 'Payment Currency', 'Payment Format'], 
-            dtype=float
+            dtype='float32'
         )
-
+        scaler = StandardScaler()
+        df_features['Amount Received'] = scaler.fit_transform(df_features[['Amount Received']])
+        df_features['Amount Paid'] = scaler.fit_transform(df_features[['Amount Paid']])
         # 7. Prepare Tensors
         # Get labels (y)
         y = torch.tensor(df_features['class'].values, dtype=torch.long)
@@ -539,15 +539,10 @@ class IBMAMLDataset_LiMedium(InMemoryDataset):
         
         # 6. Feature Engineering
         print("Performing feature engineering...")
-        list_day, list_hour, list_minute = [], [], []
-        for date in df_features['Timestamp']:
-            list_day.append(date.day)
-            list_hour.append(date.hour)
-            list_minute.append(date.minute)
-        
-        df_features['Day'] = list_day
-        df_features['Hour'] = list_hour
-        df_features['Minute'] = list_minute
+        timestamps = pd.DatetimeIndex(df_features['Timestamp'])
+        df_features['Day'] = timestamps.day.astype('float32')
+        df_features['Hour'] = timestamps.hour.astype('float32')
+        df_features['Minute'] = timestamps.minute.astype('float32')
 
         # Drop columns not used as features or labels
         df_features = df_features.drop(columns=['Timestamp', 'Account', 'Account.1'])
@@ -556,9 +551,11 @@ class IBMAMLDataset_LiMedium(InMemoryDataset):
         df_features = pd.get_dummies(
             df_features, 
             columns=['Receiving Currency', 'Payment Currency', 'Payment Format'], 
-            dtype=float
+            dtype='float32'
         )
-
+        scaler = StandardScaler()
+        df_features['Amount Received'] = scaler.fit_transform(df_features[['Amount Received']])
+        df_features['Amount Paid'] = scaler.fit_transform(df_features[['Amount Paid']])
         # 7. Prepare Tensors
         # Get labels (y)
         y = torch.tensor(df_features['class'].values, dtype=torch.long)
@@ -714,15 +711,11 @@ class IBMAMLDataset_HiMedium(InMemoryDataset):
         
         # 6. Feature Engineering
         print("Performing feature engineering...")
-        list_day, list_hour, list_minute = [], [], []
-        for date in df_features['Timestamp']:
-            list_day.append(date.day)
-            list_hour.append(date.hour)
-            list_minute.append(date.minute)
         
-        df_features['Day'] = list_day
-        df_features['Hour'] = list_hour
-        df_features['Minute'] = list_minute
+        timestamps = pd.DatetimeIndex(df_features['Timestamp'])
+        df_features['Day'] = timestamps.day.astype('float32')
+        df_features['Hour'] = timestamps.hour.astype('float32')
+        df_features['Minute'] = timestamps.minute.astype('float32')
 
         # Drop columns not used as features or labels
         df_features = df_features.drop(columns=['Timestamp', 'Account', 'Account.1'])
@@ -731,9 +724,11 @@ class IBMAMLDataset_HiMedium(InMemoryDataset):
         df_features = pd.get_dummies(
             df_features, 
             columns=['Receiving Currency', 'Payment Currency', 'Payment Format'], 
-            dtype=float
+            dtype='float32'
         )
-
+        scaler = StandardScaler()
+        df_features['Amount Received'] = scaler.fit_transform(df_features[['Amount Received']])
+        df_features['Amount Paid'] = scaler.fit_transform(df_features[['Amount Paid']])
         # 7. Prepare Tensors
         # Get labels (y)
         y = torch.tensor(df_features['class'].values, dtype=torch.long)
@@ -822,22 +817,22 @@ class AMLSimDataset(InMemoryDataset):
         num_obs = len(edges_filtered)
         train_size = int(0.6 * num_obs)
         val_size = int(0.2 * num_obs)
-
-        train_df = edges_filtered.iloc[:train_size]
-        val_df = edges_filtered.iloc[train_size:train_size + val_size]
-        test_df = edges_filtered.iloc[train_size + val_size:]
+    
+        train_df = edges_filtered.iloc[:train_size].copy()
+        val_df = edges_filtered.iloc[train_size:train_size + val_size].copy()
+        test_df = edges_filtered.iloc[train_size + val_size:].copy()
 
         #Normalising numerical values
-        #scaler = StandardScaler()
-        #train_df['TX_AMOUNT'] = scaler.fit_transform(train_df[['TX_AMOUNT']])
-        #val_df['TX_AMOUNT'] = scaler.transform(val_df[['TX_AMOUNT']])
-        #test_df['TX_AMOUNT'] = scaler.transform(test_df[['TX_AMOUNT']])
+        scaler = StandardScaler()
+        train_df['TX_AMOUNT'] = scaler.fit_transform(train_df[['TX_AMOUNT']])
+        val_df['TX_AMOUNT'] = scaler.transform(val_df[['TX_AMOUNT']])
+        test_df['TX_AMOUNT'] = scaler.transform(test_df[['TX_AMOUNT']])
 
         edges_filtered = pd.concat([train_df, val_df, test_df])
 
         #Creating feature tensor
         x = torch.tensor(edges_filtered.drop(columns=['SENDER_ACCOUNT', 'RECEIVER_ACCOUNT', 'IS_FRAUD', 'TIMESTAMP', 'ALERT_TYPE']).values, dtype=torch.float)
-        y = torch.tensor(edges_filtered['IS_FRAUD'].values, dtype=torch.float)
+        y = torch.tensor(edges_filtered['IS_FRAUD'].values, dtype=torch.long)
         
         
         #Create masks (60/20/20)
