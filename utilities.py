@@ -43,8 +43,8 @@ class FocalLoss(nn.Module):
     def forward(self, inputs, targets):
         logits = inputs.float()
         targets = targets.long()
-        device_type = 'cuda' if logits.is_cuda else 'cpu'
-        with _autocast_disabled(device_type):
+        # device_type = 'cuda' if logits.is_cuda else 'cpu'
+        with _autocast_disabled(enabled=False):
             ce_loss = F.cross_entropy(logits, targets, reduction='none')
         pt = torch.exp(-ce_loss)  # prob of the true class
         
