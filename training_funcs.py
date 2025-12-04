@@ -34,6 +34,7 @@ def train_and_validate(
     best_f1 = -1
     epochs_without_improvement = 0
     best_epoch = -1
+    best_f1_model_wts = None
     
     for epoch in range(num_epochs):
         train_loss = model_wrapper.train_step(data)

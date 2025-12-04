@@ -123,7 +123,7 @@ def run_optimisation(models, data, data_for_optimisation):
                 load_if_exists=True
             )
             with tqdm(total=n_trials, desc=f"{model_name} trials", leave=False, unit="trial") as trial_bar:
-                def _optuna_progress_callback(study, trial):
+                def _optuna_progress_callback(study_inner, trial):
                     trial_bar.update()
                 
                 # Note: data, train_perf_eval, etc., are now the device tensors

@@ -222,7 +222,7 @@ def check_study_existence(model_name, data_for_optimization):
     """
     import optuna
     study_name = f'{model_name}_optimization on {data_for_optimization} dataset'
-    storage_url = 'sqlite:///optimization_results.db'
+    storage_url = f'sqlite:///optimization_results_on_{data_for_optimization}.db'
     
     try:
         # 1. Attempt to load the study

@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.cuda.amp import autocast as _autocast_disabled
+
 
 
 def set_seed(seed: int):
@@ -43,8 +43,15 @@ class FocalLoss(nn.Module):
     def forward(self, inputs, targets):
         logits = inputs.float()
         targets = targets.long()
+        
+        # Debugging: Check for invalid targets or NaNs
+        if torch.isnan(logits).any():
+            print("NaNs detected in logits!")
+        if targets.min() < 0 or targets.max() >= logits.size(1):
+            print(f"Invalid targets detected! Min: {targets.min()}, Max: {targets.max()}, Logits shape: {logits.shape}")
+            
         # device_type = 'cuda' if logits.is_cuda else 'cpu'
-        with _autocast_disabled(enabled=False):
+        with torch.amp.autocast('cuda', enabled=False):
             ce_loss = F.cross_entropy(logits, targets, reduction='none')
         pt = torch.exp(-ce_loss)  # prob of the true class
         

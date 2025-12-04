@@ -15,7 +15,7 @@ else:
 
 #%% Hyperparameter tuning
 from Optuna import *
-datasets = ["Elliptic", "IBM_AML_HiSmall", "IBM_AML_LiSmall", "IBM_AML_HiMedium", "IBM_AML_LiMedium", "AMLSim"]
+datasets = ["IBM_AML_HiSmall", "IBM_AML_LiSmall", "IBM_AML_HiMedium", "IBM_AML_LiMedium", "AMLSim"]
 for dataset in datasets:
     match dataset:
         case "Elliptic":
@@ -54,3 +54,5 @@ for dataset in datasets:
         data=data,
         data_for_optimisation=data_for_optimisation
     )
+    
+#%% Testing models with best hyperparameters
