@@ -129,7 +129,7 @@ def run_optimisation(models, data, data_for_optimisation):
                 # Note: data, train_perf_eval, etc., are now the device tensors
                 study.optimize(
                     lambda trial: run_trial_with_cleanup( 
-                        objective, trial, model_name, model_name, data),
+                        objective, model_name, trial, model_name, data),
                     n_trials=n_trials,
                     callbacks=[_optuna_progress_callback]
                 )
