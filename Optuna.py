@@ -28,7 +28,7 @@ def _early_stop_args_from(source: dict) -> dict:
         "log_early_stop": EARLY_STOP_LOGGING,
     }
 
-def objective(trial, model, data):
+def objective(trial, model, data, train_mask, val_mask):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     try:
@@ -65,15 +65,17 @@ def objective(trial, model, data):
                 model_wrapper,
                 data,
                 num_epochs,
+                train_mask,
+                val_mask,
                 **trial_early_stop_args
             )
             return float(best_f1)
         
         elif model in sklearn_models:
-            train_x = data.x[data.train_mask].cpu().numpy()
-            train_y = data.y[data.train_mask].cpu().numpy()
-            val_x = data.x[data.val_mask].cpu().numpy()
-            val_y = data.y[data.val_mask].cpu().numpy()
+            train_x = data.x[train_mask].cpu().numpy()
+            train_y = data.y[train_mask].cpu().numpy()
+            val_x = data.x[val_mask].cpu().numpy()
+            val_y = data.y[val_mask].cpu().numpy()
             model_instance.fit(train_x, train_y)
             pred = model_instance.predict(val_x)
             f1_illicit = f1_score(val_y, pred, pos_label=1, average='binary')
@@ -90,7 +92,7 @@ def objective(trial, model, data):
             
 
                  
-def run_optimisation(models, data, data_for_optimisation):
+def run_optimisation(models, data, data_for_optimisation, train_mask, val_mask):
     model_parameters = {model_name: [] for model_name in models}
     
     METRIC_KEYS = [
@@ -129,7 +131,7 @@ def run_optimisation(models, data, data_for_optimisation):
                 # Note: data, train_perf_eval, etc., are now the device tensors
                 study.optimize(
                     lambda trial: run_trial_with_cleanup( 
-                        objective, model_name, trial, model_name, data),
+                        objective, model_name, trial, model_name, data, train_mask, val_mask),
                     n_trials=n_trials,
                     callbacks=[_optuna_progress_callback]
                 )

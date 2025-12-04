@@ -14,11 +14,11 @@ class ModelWrapper:
         self.optimiser = optimiser
         self.criterion = criterion
 
-    def train_step(self, data):
+    def train_step(self, data, train_mask):
         self.model.train()
         self.optimiser.zero_grad()
-        out = self.model(data)[data.train_mask]
-        loss = self.criterion(out, data.y[data.train_mask])
+        out = self.model(data)[train_mask]
+        loss = self.criterion(out, data.y[train_mask])
         loss.backward()
         self.optimiser.step()
         return loss.item()
@@ -28,11 +28,10 @@ class ModelWrapper:
         
         with torch.no_grad():
             # 1. Forward Pass (GPU)
-            out = self.model(data)
+            out_subset = self.model(data)[mask]
             
             # 2. Slice specific nodes (GPU)
             # Note: We slice 'out' directly to avoid creating a second full-size tensor
-            out_subset = out[mask]
             labels_subset = data.y[mask]
             
             loss = self.criterion(out_subset, labels_subset)

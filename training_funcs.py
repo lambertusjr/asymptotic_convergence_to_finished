@@ -6,16 +6,21 @@ def train_and_validate(
     model_wrapper,
     data,
     num_epochs,
+    train_mask, 
+    val_mask,
     patience=None,
     min_delta=0.0,
     log_early_stop=False
 ):
+    device = data.x.device
+    train_mask = train_mask.to(device)
+    val_mask = val_mask.to(device)
     
     mdl_dev = next(model_wrapper.model.parameters()).device
-    if not (data.x.device == mdl_dev and data.train_mask.device == mdl_dev and data.val_mask.device == mdl_dev):
+    if not (data.x.device == mdl_dev and train_mask.device == mdl_dev and val_mask.device == mdl_dev):
         raise RuntimeError(
             f"Device mismatch: model={mdl_dev}, data.x={data.x.device}, "
-            f"train_mask={data.train_mask.device}, val_mask={data.val_mask.device}"
+            f"train_mask={train_mask.device}, val_mask={val_mask.device}"
         )
         
     metrics = {
@@ -37,9 +42,9 @@ def train_and_validate(
     best_f1_model_wts = None
     
     for epoch in range(num_epochs):
-        train_loss = model_wrapper.train_step(data)
+        train_loss = model_wrapper.train_step(data, train_mask)
         
-        val_loss, f1_illicit = model_wrapper.evaluate(data, data.val_mask, full_metrics=False)
+        val_loss, f1_illicit = model_wrapper.evaluate(data, val_mask, full_metrics=False)
         
         current_f1 = f1_illicit
         

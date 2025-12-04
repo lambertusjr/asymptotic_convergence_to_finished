@@ -45,6 +45,7 @@ for dataset in datasets:
             data_for_optimisation = "AMLSim"
     print(f"Dataset {dataset} loaded successfully for hyperparameter tuning.")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    data, train_mask, val_mask, test_mask = extract_data_information(data) #Extracts masks from data object and recreates new data object to ensure no unnecessary attributes are included
     data = data.to(device)
     print(f"Data moved to device: {device}")
     
@@ -53,7 +54,9 @@ for dataset in datasets:
     model_parameter = run_optimisation(
         models=['GAT', 'GIN', 'MLP', 'SVM', 'XGB', 'RF', 'GCN'],
         data=data,
-        data_for_optimisation=data_for_optimisation
+        data_for_optimisation=data_for_optimisation,
+        train_mask = train_mask,
+        val_mask = val_mask
     )
     
 #%% Testing models with best hyperparameters
