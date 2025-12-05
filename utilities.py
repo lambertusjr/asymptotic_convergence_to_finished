@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-
+from torch_geometric.data import Data
 
 
 def set_seed(seed: int):
@@ -75,3 +75,22 @@ class FocalLoss(nn.Module):
         elif self.reduction == 'sum':
             return focal_loss.sum()
         return focal_loss
+    
+def extract_data_information(data):
+    # Extracts masks from data object and recreates new data object to ensure no unnecessary attributes are included
+    
+    #Extract masks
+    train_mask = data.train_mask
+    val_mask = data.val_mask
+    test_mask = data.test_mask
+    y = data.y
+    x = data.x
+    edge_index = data.edge_index
+    del data
+    #Recreate data object
+    new_data = Data(
+        x=x,
+        edge_index=edge_index,
+        y=y
+    )
+    return new_data, train_mask, val_mask, test_mask
