@@ -59,4 +59,15 @@ for dataset in datasets:
         val_mask = val_mask
     )
     
+    print(f"Optimization finished. Starting final evaluation...")
+    run_final_evaluation(
+        models=['GAT', 'GIN', 'MLP', 'SVM', 'XGB', 'RF', 'GCN'],
+        model_parameters=model_parameter,
+        data=data,
+        data_for_optimisation=data_for_optimisation,
+        train_mask=train_mask,
+        val_mask=val_mask,
+        test_mask=test_mask
+    )
+    
 #%% Testing models with best hyperparameters

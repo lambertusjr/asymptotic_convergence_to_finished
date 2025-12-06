@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, GATConv, GINConv
-from helper_functions import *
+from helper_functions import calculate_metrics, calculate_pr_metrics_batched, save_pr_artifacts
 from sklearn.metrics import f1_score
 
 #%% Modelwrapper
@@ -122,7 +122,8 @@ class GIN(nn.Module):
         self.fc = nn.Linear(hidden_units, num_classes)
 
     def forward(self, data):
-        x, batch = data.x, data.batch
+        x = data.x
+        batch = data.batch if hasattr(data, 'batch') else None
         edge_index = data.adj_t if hasattr(data, 'adj_t') else data.edge_index
         x = self.conv1(x, edge_index)
         x = F.relu(x)

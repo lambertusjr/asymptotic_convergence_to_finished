@@ -44,11 +44,7 @@ class FocalLoss(nn.Module):
         logits = inputs.float()
         targets = targets.long()
         
-        # Debugging: Check for invalid targets or NaNs
-        if torch.isnan(logits).any():
-            print("NaNs detected in logits!")
-        if targets.min() < 0 or targets.max() >= logits.size(1):
-            print(f"Invalid targets detected! Min: {targets.min()}, Max: {targets.max()}, Logits shape: {logits.shape}")
+
             
         # device_type = 'cuda' if logits.is_cuda else 'cpu'
         with torch.amp.autocast('cuda', enabled=False):

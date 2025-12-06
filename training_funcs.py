@@ -1,6 +1,6 @@
-
-
-
+import torch
+import gc
+import copy
 
 def train_and_validate(
     model_wrapper,
@@ -62,18 +62,12 @@ def train_and_validate(
             break
     
     return best_f1_model_wts, best_f1
-        
-        
-import copy
+
 def update_best_weights(model, best_f1, current_f1, best_f1_model_wts=None):
     if current_f1 > best_f1:
         best_f1 = current_f1
         best_f1_model_wts = {k: v.cpu().clone() for k, v in model.state_dict().items()}
     return best_f1, best_f1_model_wts
-import gc
-import torch
-import torch
-import gc
 
 def print_gpu_tensors():
     # Do not force gc.collect() here if you want to see current state including 

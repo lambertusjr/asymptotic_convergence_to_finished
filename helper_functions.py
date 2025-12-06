@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score, cohen_kappa_score, f1_score, precisi
 from torchmetrics.classification import BinaryAveragePrecision
 import matplotlib.pyplot as plt
 metric = BinaryAveragePrecision().to('cuda') if torch.cuda.is_available() else BinaryAveragePrecision()
-from models import *
+
 from xgboost import XGBClassifier
 from sklearn.linear_model import SGDClassifier
 import gc
@@ -118,7 +118,7 @@ def balanced_class_weights(labels: torch.Tensor, num_classes: int = 2) -> torch.
     inv = inv / inv.sum()
     return inv
 
-def _get_model_instance(trial, model, data, device):
+def _get_model_instance(trial, model, data, device, train_mask=None):
     """
     Helper function to suggest hyperparameters and instantiate a model
     based on the model name.
@@ -153,7 +153,7 @@ def _get_model_instance(trial, model, data, device):
         subsample = trial.suggest_float('subsample', 0.5, 1.0)
         return XGBClassifier(
             eval_metric='logloss',
-            scale_pos_weight=calculate_scale_pos_weight(data),
+            scale_pos_weight=calculate_scale_pos_weight(data, train_mask),
             learning_rate=learning_rate_XGB,
             max_depth=max_depth,
             n_estimators=n_estimators,
@@ -191,12 +191,14 @@ def _get_model_instance(trial, model, data, device):
     else:
         raise ValueError(f"Unknown model: {model}")
     
-def calculate_scale_pos_weight(data):
+def calculate_scale_pos_weight(data, train_mask):
     """
     Calculate the scale_pos_weight for imbalanced datasets.
     """
-    #train_mask = data[train_mask]
-    y_train = data.y.cpu().numpy()
+    if train_mask is None:
+        raise ValueError("train_mask must be provided to calculate_scale_pos_weight to prevent data leakage.")
+        
+    y_train = data.y[train_mask].cpu().numpy()
     pos = (y_train == 1).sum()
     neg = (y_train == 0).sum()
     return float(neg) / float(pos)
