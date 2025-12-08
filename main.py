@@ -16,7 +16,7 @@ else:
 
 #%% Hyperparameter tuning
 from Optuna import *
-datasets = ["IBM_AML_HiSmall", "IBM_AML_LiSmall", "IBM_AML_HiMedium", "IBM_AML_LiMedium", "AMLSim"]
+datasets = ["IBM_AML_HiSmall", "IBM_AML_LiSmall", "AMLSim"]
 for dataset in datasets:
     match dataset:
         case "Elliptic":
