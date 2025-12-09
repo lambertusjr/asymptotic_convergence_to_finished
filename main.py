@@ -16,7 +16,7 @@ else:
 
 #%% Hyperparameter tuning
 from Optuna import *
-datasets = ["IBM_AML_HiSmall", "IBM_AML_LiSmall", "AMLSim"]
+datasets = ["IBM_AML_LiSmall", "AMLSim"]
 for dataset in datasets:
     match dataset:
         case "Elliptic":
@@ -46,6 +46,8 @@ for dataset in datasets:
     print(f"Dataset {dataset} loaded successfully for hyperparameter tuning.")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     data, train_mask, val_mask, test_mask = extract_data_information(data) #Extracts masks from data object and recreates new data object to ensure no unnecessary attributes are included
+    print(f"data.x.shape: {data.x.shape}")
+    print(f"data.edge_index.shape: {data.edge_index.shape}")
     data = data.to(device)
     print(f"Data moved to device: {device}")
     
